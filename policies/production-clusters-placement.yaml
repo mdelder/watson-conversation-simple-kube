@@ -1,0 +1,11 @@
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementPolicy
+metadata:
+  name: production-clusters-placement
+  namespace: kube-system
+spec:
+  clusterLabels:
+    matchLabels:
+      environment: production
+  resourceHint: {}
+  resourceSelector: {}

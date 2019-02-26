@@ -1,0 +1,93 @@
+apiVersion: compliance.mcm.ibm.com/v1alpha1
+kind: Compliance
+metadata:
+  name: role-policies
+  finalizers:
+    - propagator.finalizer.mcm.ibm.com
+  generation: 1
+  namespace: kube-system
+spec:
+  runtime-rules:
+    - apiVersion: policy.mcm.ibm.com/v1alpha1
+      kind: Policy
+      metadata:
+        name: operator-role-policies
+        labels:
+          environment: production
+      spec:
+        complianceType: musthave
+        namespaces:
+          exclude:
+            - kube*
+          include:
+            - default
+        object-templates:
+          - complianceType: musthave
+            objectDefinition:
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: RoleBinding
+              metadata:
+                name: operate-pods-rolebinding
+                namespace: default
+              roleRef:
+                name: operator
+                apiGroup: rbac.authorization.k8s.io
+                kind: Role
+              subjects:
+                - name: admin
+                  apiGroup: rbac.authorization.k8s.io
+                  kind: User
+        remediationAction: enforce
+        role-templates:
+          - apiVersion: roletemplate.mcm.ibm.com/v1alpha1
+            complianceType: musthave
+            metadata:
+              name: operator-role
+            rules:
+              - complianceType: mustnothave
+                policyRule:
+                  apiGroups:
+                    - core
+                  resources:
+                    - secrets
+                  verbs:
+                    - get
+                    - list
+                    - watch
+                    - delete
+                    - create
+                    - update
+                    - patch
+              - complianceType: musthave
+                policyRule:
+                  apiGroups:
+                    - core
+                  resources:
+                    - pods
+                  verbs:
+                    - get
+                    - list
+                    - watch
+            selector:
+              matchLabels:
+                hipaa: 'true'
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  annotations:
+    seed-generation: "1"
+  finalizers:
+  - propagator.finalizer.mcm.ibm.com
+  labels:
+    name: multicloud-role-placement-binding
+    placementPolicy: production-clusters-placement
+  name: multicloud-role-placement-binding
+  namespace: kube-system
+placementRef:
+  apiGroup: mcm.ibm.com
+  kind: PlacementPolicy
+  name: production-clusters-placement
+subjects:
+- kind: Compliance
+  name: role-policies

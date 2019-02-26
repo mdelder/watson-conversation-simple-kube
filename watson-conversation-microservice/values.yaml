@@ -1,0 +1,10 @@
+replicaCount: 1
+
+
+workspaceId: aa57d1b8-a9a8-4644-be45-2526cd21483c
+
+image:
+  repository: docker.io/mdelder/watson-conversation-app
+  tag: latest
+
+
