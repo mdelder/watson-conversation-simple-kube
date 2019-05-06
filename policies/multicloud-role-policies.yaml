@@ -75,10 +75,6 @@ spec:
 apiVersion: mcm.ibm.com/v1alpha1
 kind: PlacementBinding
 metadata:
-  annotations:
-    seed-generation: "1"
-  finalizers:
-  - propagator.finalizer.mcm.ibm.com
   labels:
     name: multicloud-role-placement-binding
     placementPolicy: production-clusters-placement

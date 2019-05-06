@@ -1,0 +1,94 @@
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: watson-conversation-app
+  generation: 1
+  labels:
+    name: watson-conversation-app
+    app: watson-conversation-app
+  namespace: default
+spec:
+  componentKinds:
+    - group: core
+      kind: Pods
+  descriptor: {}
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - watson-conversation-app
+          - watson-convo
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  name: watson-conversation-app
+  labels:
+    name: watson-conversation-app
+    app: watson-conversation-app
+    servicekind: ApplicationService
+  namespace: default
+spec:
+  deployer:
+    kind: helm
+    helm:
+      chartURL: >-
+        https://github.com/mdelder/watson-conversation-simple-kube/releases/download/1.0.0-alpha/watson-conversation-microservice-1.0.0.tgz
+      namespace: default
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: ApplicationRelationship
+metadata:
+  name: watson-conversation-app
+  labels:
+    app: watson-conversation-app
+    destinationKind: Deployable
+    destinationName: watson-conversation-app
+    sourceKind: Application
+    sourceName: watson-conversation-app
+  namespace: default
+spec:
+  destination:
+    name: watson-conversation-app
+    kind: Deployable
+  source:
+    name: watson-conversation-app
+    kind: Application
+  type: contains
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementPolicy
+metadata:
+  name: watson-conversation-app
+  labels:
+    name: watson-conversation-app
+    app: watson-conversation-app
+    chart: watson-conversation-app-1.0.0
+    servicekind: ApplicationService
+  namespace: default
+spec:
+  clusterLabels:
+    matchLabels:
+      datacenter: us-east-dc1
+      environment: dev
+  clusterReplicas: 1
+  resourceHint:
+    type: cpu
+  resourceSelector: {}
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  labels:
+    name: watson-conversation-app-binding
+    placementPolicy: watson-conversation-app
+  name: watson-conversation-app-binding
+  namespace: default
+placementRef:
+  name: watson-conversation-app
+  apiGroup: mcm.ibm.com
+subjects:
+- kind: Deployable
+  name: watson-conversation-app
+  apiGroup: mcm.ibm.com

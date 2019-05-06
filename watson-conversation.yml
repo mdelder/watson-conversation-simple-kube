@@ -30,10 +30,10 @@ spec:
     spec:
       containers:
       - name: watson-conversation-app
-        image: mycluster.icp:8500/default/conversation-simple:latest
+        image: docker.io/mdelder/watson-conversation-app:latest
         resources:
           requests:
-            cpu: 100m
+            cpu: 500m
             memory: 100Mi
         env:
           - name: WORKSPACE_ID
