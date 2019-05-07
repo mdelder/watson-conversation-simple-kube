@@ -1,74 +1,55 @@
-apiVersion: compliance.mcm.ibm.com/v1alpha1
-kind: Compliance
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
 metadata:
-  name: clusterimage-policies
-  finalizers:
-    - propagator.finalizer.mcm.ibm.com
-  generation: 1
+  name: watson-conversation-app-clusterimage-policy
   namespace: kube-system
+  annotations:
+    policy.mcm.ibm.com/standards: NIST,HIPAA
+    policy.mcm.ibm.com/categories: SystemAndCommunicationsProtections,SystemAndInformationIntegrity
+    policy.mcm.ibm.com/controls: MutationAdvisor,VA
 spec:
-  runtime-rules:
-    - apiVersion: policy.mcm.ibm.com/v1alpha1
-      kind: Policy
-      metadata:
-        name: watson-conversation-app-clusterimage-policy
-        labels:
-          targets: prod
-      spec:
-        complianceType: musthave
-        namespaces:
-          exclude:
-            - kube*
-          include:
-            - default
-        remediationAction: inform
-        object-templates:
-          - complianceType: musthave
-            objectDefinition:
-              apiVersion: securityenforcement.admission.cloud.ibm.com/v1beta1
-              kind: ClusterImagePolicy
-              metadata:
-                name: watson-conversation-app-cluster-image-policy
-              spec:
-                repositories:
-                - name: docker.io/mdelder/watson-conversation-app:*
+  complianceType: musthave
+  namespaces:
+    exclude:
+      - kube*
+    include:
+      - default
+  remediationAction: enforce
+  object-templates:
+    - complianceType: musthave
+      objectDefinition:
+        apiVersion: securityenforcement.admission.cloud.ibm.com/v1beta1
+        kind: ClusterImagePolicy
+        metadata:
+          name: watson-conversation-app-cluster-image-policy
+        spec:
+          repositories:
+          - name: docker.io/mdelder/watson-conversation-app:*
 ---
 apiVersion: mcm.ibm.com/v1alpha1
 kind: PlacementBinding
 metadata:
-  annotations:
-    seed-generation: "1"
-  finalizers:
-  - propagator.finalizer.mcm.ibm.com
-  labels:
-    name: multicloud-clusterimage-placement-binding
-    placementPolicy: production-clusters-placement
   name: multicloud-clusterimage-placement-binding
   namespace: kube-system
 placementRef:
-  apiGroup: mcm.ibm.com
   kind: PlacementPolicy
+  apiGroup: mcm.ibm.com
   name: production-clusters-placement
 subjects:
-- kind: Compliance
-  apiGroup: compliance.mcm.ibm.com
-  kind: Compliance
-  name: clusterimage-policies
+- kind: Policy
+  apiGroup: policy.mcm.ibm.com
+  name: watson-conversation-app-clusterimage-policy
 ---
 apiVersion: mcm.ibm.com/v1alpha1
 kind: PlacementBinding
 metadata:
-  labels:
-    name: multicloud-clusterimage-dev-placement-binding
-    placementPolicy: dev-clusters-placement
   name: multicloud-clusterimage-dev-placement-binding
   namespace: kube-system
 placementRef:
-  apiGroup: mcm.ibm.com
   kind: PlacementPolicy
+  apiGroup: mcm.ibm.com
   name: dev-clusters-placement
 subjects:
-- kind: Compliance
-  apiGroup: compliance.mcm.ibm.com
-  kind: Compliance
-  name: clusterimage-policies
+- kind: Policy
+  apiGroup: policy.mcm.ibm.com
+  name: watson-conversation-app-clusterimage-policy

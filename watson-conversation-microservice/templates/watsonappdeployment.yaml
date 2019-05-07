@@ -60,6 +60,10 @@ spec:
             memory: 100Mi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+          name: http
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -97,7 +101,7 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     tier: frontend
-  name:  {{ template "watson-conv.fullname" . }}-internal
+  name:  {{ template "watson-conv.fullname" . }}-svc
 spec:
   ports:
   - port: 3000
@@ -108,3 +112,18 @@ spec:
     tier: frontend
   sessionAffinity: None
   type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+  name: {{ template "watson-conv.fullname" . }}
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: {{ template "watson-conv.fullname" . }}-svc
+          servicePort: 3000
+        path: /conversation

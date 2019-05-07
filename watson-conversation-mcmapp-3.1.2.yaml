@@ -87,6 +87,7 @@ metadata:
   namespace: default
 placementRef:
   name: watson-conversation-app
+  kind: PlacementPolicy
   apiGroup: mcm.ibm.com
 subjects:
 - kind: Deployable

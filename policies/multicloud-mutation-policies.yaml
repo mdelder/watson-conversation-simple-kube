@@ -1,0 +1,43 @@
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
+metadata:
+  name: mutation-policies
+  namespace: kube-system
+  annotations:
+    policy.mcm.ibm.com/standards: NIST
+    policy.mcm.ibm.com/categories: SystemAndInformationIntegrity
+    policy.mcm.ibm.com/controls: MutationAdvisor
+spec:
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policies.ibm.com/v1alpha1
+      kind: MutationPolicy
+      metadata:
+        name: mutation-policy-example
+        label:
+          category: "System-Integrity"
+      spec:
+        namespaceSelector:
+          include: ["default","kube-*"]
+          exclude: ["kube-system"]
+        remediationAction: enforce # enforce or inform
+        conditions:
+          ownership: ["ReplicaSet", "Deployment", "DeamonSet", "ReplicationController"]
+  remediationAction: enforce
+---
+apiVersion: mcm.ibm.com/v1alpha1
+kind: PlacementBinding
+metadata:
+  labels:
+    name: multicloud-role-placement-binding
+    placementPolicy: production-clusters-placement
+  name: multicloud-role-placement-binding
+  namespace: kube-system
+placementRef:
+  apiGroup: mcm.ibm.com
+  kind: PlacementPolicy
+  name: production-clusters-placement
+subjects:
+- kind: Policy
+  apiGroup: mcm.ibm.com
+  name: mutation-policies

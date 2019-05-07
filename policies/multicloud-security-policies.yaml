@@ -1,81 +1,73 @@
-apiVersion: compliance.mcm.ibm.com/v1alpha1
-kind: Compliance
+apiVersion: policy.mcm.ibm.com/v1alpha1
+kind: Policy
 metadata:
   name: security-policies
-  finalizers:
-    - propagator.finalizer.mcm.ibm.com
-  generation: 1
-  namespace: kube-system
+  namespace: mcm
+  annotations:
+    policy.mcm.ibm.com/standards: NIST,PCI
+    policy.mcm.ibm.com/categories: SystemAndCommunicationsProtections,SystemAndInformationIntegrity
 spec:
-  runtime-rules:
-    - apiVersion: policy.mcm.ibm.com/v1alpha1
-      kind: Policy
-      metadata:
-        name: policy-prod
-        labels:
-          targets: prod
-      spec:
-        complianceType: musthave
-        namespaces:
-          exclude:
-            - kube*
-          include:
-            - default
-        object-templates:
-          - complianceType: musthave
-            objectDefinition:
-              apiVersion: policy/v1beta1
-              kind: PodSecurityPolicy
-              metadata:
-                name: restricted-mcm
-              spec:
-                allowedCapabilities:
-                  - '*'
-                allowPrivilegeEscalation: false
-                fsGroup:
-                  rule: RunAsAny
-                hostIPC: false
-                hostNetwork: true
-                hostPID: false
-                hostPorts:
-                  - max: 65535
-                    min: 1000
-                privileged: false
-                runAsUser:
-                  rule: RunAsAny
-                seLinux:
-                  rule: RunAsAny
-                supplementalGroups:
-                  rule: RunAsAny
-                volumes:
-                  - '*'
-          - complianceType: musthave
-            objectDefinition:
-              apiVersion: networking.k8s.io/v1
-              kind: NetworkPolicy
-              metadata:
-                name: deny-from-other-namespaces
-                namespace: default
-              spec:
-                ingress:
-                  - from:
-                      - podSelector: {}
-                podSelector:
-                  matchLabels: null
-          - complianceType: musthave
-            objectDefinition:
-              apiVersion: v1
-              kind: LimitRange
-              metadata:
-                name: mem-limit-range
-              spec:
-                limits:
-                  - default:
-                      memory: 512Mi
-                    defaultRequest:
-                      memory: 256Mi
-                    type: Container
-        remediationAction: enforce
+  complianceType: musthave
+  namespaces:
+    exclude:
+      - kube*
+    include:
+      - default
+  object-templates:
+    - complianceType: musthave
+      objectDefinition:
+        apiVersion: policy/v1beta1
+        kind: PodSecurityPolicy
+        metadata:
+          name: restricted-mcm
+        spec:
+          allowedCapabilities:
+            - '*'
+          allowPrivilegeEscalation: false
+          fsGroup:
+            rule: RunAsAny
+          hostIPC: false
+          hostNetwork: true
+          hostPID: false
+          hostPorts:
+            - max: 65535
+              min: 1000
+          privileged: false
+          runAsUser:
+            rule: RunAsAny
+          seLinux:
+            rule: RunAsAny
+          supplementalGroups:
+            rule: RunAsAny
+          volumes:
+            - '*'
+    - complianceType: musthave
+      objectDefinition:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        metadata:
+          name: deny-from-other-namespaces
+          namespace: default
+        spec:
+          ingress:
+            - from:
+                - podSelector: {}
+          podSelector:
+            matchLabels: null
+    - complianceType: musthave
+      objectDefinition:
+        apiVersion: v1
+        kind: LimitRange
+        metadata:
+          name: mem-limit-range
+        spec:
+          limits:
+            - default:
+                memory: 512Mi
+              defaultRequest:
+                memory: 256Mi
+              type: Container
+  remediationAction: enforce
 ---
 apiVersion: mcm.ibm.com/v1alpha1
 kind: PlacementBinding
@@ -90,7 +82,8 @@ placementRef:
   apiGroup: mcm.ibm.com
   kind: PlacementPolicy
 subjects:
-- kind: Compliance
+- kind: Policy
+  apiGroup: mcm.ibm.com
   name: security-policies
 ---
 apiVersion: mcm.ibm.com/v1alpha1
@@ -106,5 +99,6 @@ placementRef:
   kind: PlacementPolicy
   name: dev-clusters-placement
 subjects:
-- kind: Compliance
+- kind: Policy
+  apiGroup: mcm.ibm.com
   name: security-policies
